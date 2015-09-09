@@ -1,0 +1,1 @@
+/bin/c++       CMakeFiles/rtmp_push.dir/src/main.cpp.o CMakeFiles/rtmp_push.dir/src/CRtmpStream.cpp.o  -o rtmp_push  -L/usr/local/lib  -L/home/zhangbin/xlive/rtmppush/testak201/rtmp-push/deps/librtmp -rdynamic -Wl,-Bstatic -lrtmp -Wl,-Bdynamic -Wl,-rpath,/usr/local/lib:/home/zhangbin/xlive/rtmppush/testak201/rtmp-push/deps/librtmp 
