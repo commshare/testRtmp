@@ -4,3 +4,7 @@
 *.rar
 *bz2
 *.gz
+librtmp/build/
+h264-push/build/
+rtmp-push/build/
+
