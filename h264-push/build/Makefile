@@ -124,7 +124,7 @@ librtmp_static: cmake_check_build_system
 
 # fast build rule for target.
 librtmp_static/fast:
-	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build
+	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build
 .PHONY : librtmp_static/fast
 
 src/RTMPStream.o: src/RTMPStream.cpp.o

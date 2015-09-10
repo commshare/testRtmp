@@ -91,53 +91,53 @@ clean: CMakeFiles/rtmp_h264_push.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Directory level rules for directory /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp
+# Directory level rules for directory /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build
 
 # Convenience name for "all" pass in the directory.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/all: /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/all
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/all
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/all: /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/all
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/all
 
 # Convenience name for "clean" pass in the directory.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/clean: /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/clean
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/clean
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/clean: /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/clean
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/clean
 
 # Convenience name for "preinstall" pass in the directory.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/preinstall:
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/preinstall
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/preinstall:
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/preinstall
 
 #=============================================================================
-# Target rules for target /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir
+# Target rules for target /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir
 
 # All Build rule for target.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/all:
-	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/depend
-	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/all:
+	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/depend
+	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/zhangbin/xlive/rtmppush/testak201/h264-push/build/CMakeFiles  1 2 3 4 5
 	@echo "Built target librtmp_static"
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/all
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/all
 
 # Include target in all.
-all: /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/all
+all: /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/all
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/rule: cmake_check_build_system
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangbin/xlive/rtmppush/testak201/h264-push/build/CMakeFiles 5
-	$(MAKE) -f CMakeFiles/Makefile2 /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangbin/xlive/rtmppush/testak201/h264-push/build/CMakeFiles 0
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/rule
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/rule
 
 # Convenience name for target.
-librtmp_static: /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/rule
+librtmp_static: /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/rule
 .PHONY : librtmp_static
 
 # clean rule for target.
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/clean:
-	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/clean
-.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/clean
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/clean:
+	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/clean
+.PHONY : /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/clean
 
 # clean rule for target.
-clean: /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/clean
+clean: /home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/clean
 .PHONY : clean
 
 #=============================================================================

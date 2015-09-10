@@ -55,11 +55,11 @@ SET(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 SET(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
-  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/rtmp_h264_push.dir/DependInfo.cmake"
-  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/DependInfo.cmake"
+  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir/DependInfo.cmake"
   )

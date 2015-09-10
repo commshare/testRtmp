@@ -6,11 +6,11 @@
 
 #IncludeRegexTransform: 
 
-../deps/librtmp/amf.h
+../../librtmp/amf.h
 stdint.h
 -
 
-../deps/librtmp/rtmp.h
+../../librtmp/rtmp.h
 errno.h
 -
 stdint.h
@@ -18,9 +18,9 @@ stdint.h
 stddef.h
 -
 amf.h
-../deps/librtmp/amf.h
+../../librtmp/amf.h
 
-../deps/librtmp/rtmp_sys.h
+../../librtmp/rtmp_sys.h
 winsock2.h
 -
 ws2tcpip.h
@@ -42,7 +42,7 @@ netinet/tcp.h
 arpa/inet.h
 -
 rtmp.h
-../deps/librtmp/rtmp.h
+../../librtmp/rtmp.h
 polarssl/version.h
 -
 polarssl/net.h
@@ -54,12 +54,12 @@ polarssl/havege.h
 gnutls/gnutls.h
 -
 
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/src/RTMPStream.cpp
-RTMPStream.h
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/src/RTMPStream.h
-SpsDecode.h
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/src/SpsDecode.h
-windows.h
+../deps/lwlog/lwlog.h
+stdio.h
+-
+errno.h
+-
+string.h
 -
 
 /home/zhangbin/xlive/rtmppush/testak201/h264-push/src/RTMPStream.h
@@ -72,14 +72,6 @@ amf.h
 stdio.h
 -
 
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/src/SpsDecode.h
-stdio.h
--
-math.h
--
-string.h
--
-
 /home/zhangbin/xlive/rtmppush/testak201/h264-push/src/main.cpp
 iostream
 -
@@ -87,4 +79,6 @@ stdio.h
 -
 RTMPStream.h
 /home/zhangbin/xlive/rtmppush/testak201/h264-push/src/RTMPStream.h
+lwlog.h
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/src/lwlog.h
 

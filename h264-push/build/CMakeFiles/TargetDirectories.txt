@@ -1,2 +1,2 @@
-/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir
+/home/zhangbin/xlive/rtmppush/testak201/h264-push/librtmp/build/CMakeFiles/librtmp_static.dir
 /home/zhangbin/xlive/rtmppush/testak201/h264-push/build/CMakeFiles/rtmp_h264_push.dir
