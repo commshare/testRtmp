@@ -114,6 +114,19 @@ rtmp_h264_push/fast:
 	$(MAKE) -f CMakeFiles/rtmp_h264_push.dir/build.make CMakeFiles/rtmp_h264_push.dir/build
 .PHONY : rtmp_h264_push/fast
 
+#=============================================================================
+# Target rules for targets named librtmp_static
+
+# Build rule for target.
+librtmp_static: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 librtmp_static
+.PHONY : librtmp_static
+
+# fast build rule for target.
+librtmp_static/fast:
+	$(MAKE) -f /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build.make /home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/build
+.PHONY : librtmp_static/fast
+
 src/RTMPStream.o: src/RTMPStream.cpp.o
 .PHONY : src/RTMPStream.o
 
@@ -171,6 +184,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... rtmp_h264_push"
+	@echo "... librtmp_static"
 	@echo "... src/RTMPStream.o"
 	@echo "... src/RTMPStream.i"
 	@echo "... src/RTMPStream.s"

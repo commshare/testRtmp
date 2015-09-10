@@ -11,6 +11,7 @@ SET(CMAKE_MAKEFILE_DEPENDS
   "CMakeFiles/2.8.11/CMakeCCompiler.cmake"
   "CMakeFiles/2.8.11/CMakeCXXCompiler.cmake"
   "CMakeFiles/2.8.11/CMakeSystem.cmake"
+  "/home/zhangbin/xlive/rtmppush/testak201/librtmp/CMakeLists.txt"
   "/usr/share/cmake/Modules/CMakeCCompiler.cmake.in"
   "/usr/share/cmake/Modules/CMakeCCompilerABI.c"
   "/usr/share/cmake/Modules/CMakeCInformation.cmake"
@@ -54,9 +55,11 @@ SET(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 SET(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/rtmp_h264_push.dir/DependInfo.cmake"
+  "/home/zhangbin/xlive/rtmppush/testak201/h264-push/deps/librtmp/CMakeFiles/librtmp_static.dir/DependInfo.cmake"
   )
