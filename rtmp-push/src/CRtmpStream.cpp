@@ -5,6 +5,7 @@
  */
 
 #include <unistd.h>
+#include"lwlog/lwlog.h"
 
 #include "CRtmpStream.h"
 #include "bytestream.h"
@@ -104,19 +105,19 @@ void CRtmpStream::Close(void) {
 }
 
 /*
- * @brief è·å–flvæ–‡ä»¶å¤´æ•°æ®, åŒ…æ‹¬metadataæ•°æ®å’Œå…¶åçš„previous tag size, è¿”å›æ–‡ä»¶å¤´å­—èŠ‚å¤§å­¦
+ * @brief »ñÈ¡flvÎÄ¼şÍ·Êı¾İ, °üÀ¨metadataÊı¾İºÍÆäºóµÄprevious tag size, ·µ»ØÎÄ¼şÍ·×Ö½Ú´óÑ§
  */
 int CRtmpStream::GetFlvHeader(unsigned char *buf) {
-    // è¯»å–flvæ–‡ä»¶å¤´9 + 4
+    // ¶ÁÈ¡flvÎÄ¼şÍ·9 + 4
     fread(buf, 13, 1, m_pFid);
 
-    // è¯»å–tag header
+    // ¶ÁÈ¡tag header
     fread(buf + 13, 11, 1, m_pFid);
 
     unsigned char type = buf[13];
     unsigned int size = (unsigned char) buf[14] * 256 * 256 + (unsigned char) buf[15] * 256 + (unsigned char) buf[16];
 
-    // è¯»å–metadataæ•°æ®, åŒ…æ‹¬å…¶åçš„previous tag size
+    // ¶ÁÈ¡metadataÊı¾İ, °üÀ¨ÆäºóµÄprevious tag size
     if (0x12 == type) {
         fread(buf + 24, size + 4, 1, m_pFid);
         return size + 24 + 4;
@@ -127,18 +128,18 @@ int CRtmpStream::GetFlvHeader(unsigned char *buf) {
 }
 
 /*
- * @brief è¯»å–ä¸€å¸§flvæ•°æ®åˆ°bufä¸­, åŒ…æ‹¬å…¶åçš„previous tag size
+ * @brief ¶ÁÈ¡Ò»Ö¡flvÊı¾İµ½bufÖĞ, °üÀ¨ÆäºóµÄprevious tag size
  */
 int CRtmpStream::GetFlvFrame(unsigned char *buf) {
     unsigned int framesize = 0;
     unsigned int bodysize = 0;
     static int tagIndex = 0;
 
-    // è¯»å–tag header
+    // ¶ÁÈ¡tag header
     fread(buf, 11, 1, m_pFid);
     framesize += 11;
 
-    // è·å–tagçš„ç±»å‹
+    // »ñÈ¡tagµÄÀàĞÍ
     unsigned char type = buf[0];
     if ((0x08 == type) || (0x09 == type)) {
         ++tagIndex;
@@ -147,13 +148,13 @@ int CRtmpStream::GetFlvFrame(unsigned char *buf) {
         return -1;
     }
 
-    // è·å–bodysize
+    // »ñÈ¡bodysize
     bodysize = (unsigned char) buf[1] * 256 * 256 + (unsigned char) buf[2] * 256 + (unsigned char) buf[3];
     fread(buf + 11, bodysize, 1, m_pFid);
     framesize += bodysize;
     printf("\n%s Tag%d Size: %d\n", (type == 0x08) ? "Audio" : ((type == 0x09) ? "Video" : "Metadata"), tagIndex, framesize);
 
-    // å°†4ä¸ªå­—èŠ‚çš„previous sizeè¯»å–åˆ°bufä¸­
+    // ½«4¸ö×Ö½ÚµÄprevious size¶ÁÈ¡µ½bufÖĞ
     fread(buf + framesize, 4, 1, m_pFid);
     framesize += 4;
 
@@ -161,7 +162,7 @@ int CRtmpStream::GetFlvFrame(unsigned char *buf) {
 }
 
 /*
- * @brief å‘é€flvæ–‡ä»¶å¤´
+ * @brief ·¢ËÍflvÎÄ¼şÍ·
  */
 int CRtmpStream::SendFlvHeader(unsigned char *buf, int size) {
     uint32_t timestamp;
@@ -169,18 +170,23 @@ int CRtmpStream::SendFlvHeader(unsigned char *buf, int size) {
     int pktSize, pktType;
     unsigned char *pHeader = buf + 13;
 
-    // è·å–metadata tagçš„å¤´ä¿¡æ¯(11ä¸ªå­—èŠ‚)
+    // »ñÈ¡metadata tagµÄÍ·ĞÅÏ¢(11¸ö×Ö½Ú)
     pktType = bytestream_get_byte((const unsigned char **) &pHeader);
+    lwlog_info("pktType[%d]", pktType);
     pktSize = bytestream_get_be24((const unsigned char **) &pHeader);
+    lwlog_info("pktSize[%d]", pktSize);
     timestamp = bytestream_get_be24((const unsigned char **) &pHeader);
+    lwlog_info("#1#timestamp[%d]", timestamp);
     timestamp |= bytestream_get_byte((const unsigned char **) &pHeader) << 24;
+    lwlog_info("#2#timestamp[%d]", timestamp);
     bytestream_get_be24((const unsigned char **) &pHeader);
-
-    // æ„é€ RTMPåŒ…
+    lwlog_info("okokok");
+    // ¹¹ÔìRTMP°ü
     RTMPPacket packet;
     RTMPPacket_Reset(&packet);
     ret = RTMPPacket_Alloc(&packet, size + 16);
     if (!ret) {
+        lwlog_err("RTMPPacket_Alloc fail");
         return -1;
     }
 
@@ -201,7 +207,7 @@ int CRtmpStream::SendFlvHeader(unsigned char *buf, int size) {
 }
 
 /*
- * @brief å‘é€flvä¸€å¸§
+ * @brief ·¢ËÍflvÒ»Ö¡
  */
 int CRtmpStream::SendFlvFrame(unsigned char *buf, int size) {
     uint32_t timestamp;
@@ -209,14 +215,14 @@ int CRtmpStream::SendFlvFrame(unsigned char *buf, int size) {
     int pktSize, pktType;
     unsigned char *pHeader = buf;
 
-    // è·å–tag headerä¿¡æ¯(11ä¸ªå­—èŠ‚)
+    // »ñÈ¡tag headerĞÅÏ¢(11¸ö×Ö½Ú)
     pktType = bytestream_get_byte((const unsigned char **) &pHeader);
     pktSize = bytestream_get_be24((const unsigned char **) &pHeader);
     timestamp = bytestream_get_be24((const unsigned char **) &pHeader);
     timestamp |= bytestream_get_byte((const unsigned char **) &pHeader) << 24;
     bytestream_get_be24((const unsigned char **) &pHeader);
 
-    // æ„é€ RTMPåŒ…
+    // ¹¹ÔìRTMP°ü
     RTMPPacket packet;
     RTMPPacket_Reset(&packet);
     ret = RTMPPacket_Alloc(&packet, size);
@@ -239,7 +245,7 @@ int CRtmpStream::SendFlvFrame(unsigned char *buf, int size) {
 };
 
 /*
- * @brief å‘é€flvæ–‡ä»¶
+ * @brief ·¢ËÍflvÎÄ¼ş
  */
 bool CRtmpStream::SendFlvFile(const char *filename) {
     int size = 0;
@@ -252,13 +258,15 @@ bool CRtmpStream::SendFlvFile(const char *filename) {
     }
 
     size = GetFlvHeader(buf);
+    lwlog_info("flvheader size[%d]",size);
     SendFlvHeader(buf, size);
 
-    // å¾ªç¯å‘é€æ¯ä¸€å¸§æ•°æ®
+    // Ñ­»··¢ËÍÃ¿Ò»Ö¡Êı¾İ
     while (!feof(m_pFid)) {
         memset(buf, 0, SEND_BUF_SIZE);
         size = GetFlvFrame(buf);
         if (size > 0) {
+            /*Ñ­»··¢ËÍflvµÄÊı¾İÖ¡*/
             SendFlvFrame(buf, size);
             sleep(40);
         }
