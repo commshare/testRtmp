@@ -16,6 +16,11 @@ char *put_byte(char *output, uint8_t nVal) {
     return output + 1;
 }
 
+/*
+°ÑÒ»¸öÕ¼ÓÃÁËÁ½¸ö×Ö½ÚµÄÊý¾Ý£¬µÍ°ËÎ»´æÔÚ»º³åµÄ¸ßµØÖ·£¬¸ß°ËÎ»´æÔÚµÍµØÖ·¡£
+Èç¹û»º³å´ú±íµÄÊÇÐ¡¶Ë´æ´¢£¬ÄÇÃ´ÊäÈëµÄÊý¾ÝÊÇ´ó¶ËÄ£Ê½µÄ¡£
+ÄÇÕâ¸öÊµ¼ÊÉÏÊÐ´ó¶Ë×ªÐ¡¶Ëå
+*/
 char *put_be16(char *output, uint16_t nVal) {
     output[1] = nVal & 0xff;
     output[0] = nVal >> 8;
@@ -110,13 +115,25 @@ void CRtmpStream::Close(void) {
 int CRtmpStream::GetFlvHeader(unsigned char *buf) {
     // ¶ÁÈ¡flvÎÄ¼þÍ·9 + 4
     fread(buf, 13, 1, m_pFid);
-
+     int i=0;
+     /*http://smartgeek.iteye.com/blog/1543825
+     hh ½«»á½« int ×ª»¯³É char£»unsigned int ×ª»¯³É unsigned char */
+     for(i=0;i<13;i++){
+        printf( "the hex value of a is 0x%02hhx\n", buf[i] );
+     }
     // ¶ÁÈ¡tag header
     fread(buf + 13, 11, 1, m_pFid);
 
+    /*ox12,´ú±íµÚÒ»¸ötagÊÇMetadataTag*/
     unsigned char type = buf[13];
-    unsigned int size = (unsigned char) buf[14] * 256 * 256 + (unsigned char) buf[15] * 256 + (unsigned char) buf[16];
+    printf( "the hex value of type is 0x%02hhx\n", type );
 
+    /*ÕâÓ¦¸Ã¾Í¿ÉÒÔËµÃ÷FLVÎÄ¼þ´æ´¢Êý¾ÝÊÇ°´ÕÕ´ó¶ËÀ´´æ´¢µÄ£¬ÒòÎªÄÚ´æµÍµØÖ·£¬´æ·ÅµÄÊÇ¸ßÎ»Êý¾Ý
+            http://www.oschina.net/translate/understanding-big-and-little-endian-byte-order
+            sizeÊÇÕ¼ÁËÈý¸ö×Ö½ÚµÄ
+    */
+    unsigned int size = (unsigned char) buf[14] * 256 * 256 + (unsigned char) buf[15] * 256 + (unsigned char) buf[16];
+    printf("metadata size[%d]\n",size);
     // ¶ÁÈ¡metadataÊý¾Ý, °üÀ¨ÆäºóµÄprevious tag size
     if (0x12 == type) {
         fread(buf + 24, size + 4, 1, m_pFid);
@@ -165,13 +182,21 @@ int CRtmpStream::GetFlvFrame(unsigned char *buf) {
  * @brief ·¢ËÍflvÎÄ¼þÍ·
  */
 int CRtmpStream::SendFlvHeader(unsigned char *buf, int size) {
+
     uint32_t timestamp;
     int ret = 0;
     int pktSize, pktType;
     unsigned char *pHeader = buf + 13;
 
-    // »ñÈ¡metadata tagµÄÍ·ÐÅÏ¢(11¸ö×Ö½Ú)
+    // »ñÈ¡metadata tagµÄÍ·ÐÅÏ¢(11¸ö×Ö½Ú)¡¢
+    /*
+type                Ò»¸ö×Ö½Ú  18
+data size          Èý¸ö×Ö½Ú   397
+timestamp         ËÄ¸ö×Ö½Ú      0
+streamid          Èý¸ö×Ö½Ú     0
+    */
     pktType = bytestream_get_byte((const unsigned char **) &pHeader);
+
     lwlog_info("pktType[%d]", pktType);
     pktSize = bytestream_get_be24((const unsigned char **) &pHeader);
     lwlog_info("pktSize[%d]", pktSize);

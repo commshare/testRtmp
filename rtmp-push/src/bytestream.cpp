@@ -20,6 +20,9 @@ int bytestream_get_be24(const unsigned char ** buf){
      unsigned char b=(*(p+1));
      unsigned char c=(*(p+2));
     int d=(a<<16) | (b<<8) | (c) ;
+    /*d和e的计算方式是一样的*/
+    int e= (a<<16) +(b<<8) + (c) ;
+    printf("###e[%d]\n",e);
 //	printf("a[%d] \n b[%d] \nc[%d] \n d[%d]\n",a,b,c,d);
 //	 printf("#2#move to next \n");
 	 #if TEST_CHANGE_pHeader2
