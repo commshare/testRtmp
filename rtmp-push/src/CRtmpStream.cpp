@@ -121,6 +121,16 @@ int CRtmpStream::GetFlvHeader(unsigned char *buf) {
      for(i=0;i<13;i++){
         printf( "the hex value of a is 0x%02hhx\n", buf[i] );
      }
+     /*11个字节的tag header信息，
+其中 Tag Header由11个字节组成：
+
+第1个字节：表示类型，0x08表示音频，0x09表示视频，0x12表示Script Data；
+第2-4字节：表示当前Tag Data的长度；
+第5-7字节：表示Tag的时间戳，以毫秒为单位；
+第8字节：时间戳的扩展字节，用于扩充上面的时间戳；
+第9-11字节：表示Stream ID，总为0。
+
+     */
     // 读取tag header
     fread(buf + 13, 11, 1, m_pFid);
 
@@ -135,7 +145,7 @@ int CRtmpStream::GetFlvHeader(unsigned char *buf) {
     unsigned int size = (unsigned char) buf[14] * 256 * 256 + (unsigned char) buf[15] * 256 + (unsigned char) buf[16];
     printf("metadata size[%d]\n",size);
     // 读取metadata数据, 包括其后的previous tag size
-    if (0x12 == type) {
+    if (0x12 == type) { /*0x12表示Script Data*/
         fread(buf + 24, size + 4, 1, m_pFid);
         return size + 24 + 4;
     } else {

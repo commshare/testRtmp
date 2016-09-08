@@ -1,3 +1,4 @@
+*.flv
 *.o
 *.d
 *.tgz
@@ -7,4 +8,5 @@
 librtmp/build/
 h264-push/build/
 rtmp-push/build/
-
+sqbingRtmpFlv/build/
+rtmp-push/SI/
