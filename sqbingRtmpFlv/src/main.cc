@@ -140,11 +140,11 @@ int connect_remote(GlobalContext &ctx){
         return -1;
     }
     RTMP_Init(ctx.rtmp);
-    ctx.rtmp->Link.timeout = 5;
+    ctx.rtmp->Link.timeout = 5;  /*链接服务器的超时时间在这里*/
     std::cout<<"Timeout set to 5s."<<std::endl;
 
     // 创建RTMP数据包
-    ctx.packet = new RTMPPacket;
+    ctx.packet = new RTMPPacket;  /*竟然可以用new*/
     RTMPPacket_Alloc(ctx.packet, 1024*64);
     std::cout<<"Alloced rtmp packet."<<std::endl;
     RTMPPacket_Reset(ctx.packet);
@@ -308,6 +308,11 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        /*
+            FileHeader:9字节。
+            FirstTagSize 4 个字节。
+            fseek的偏移量是相对于文件起始位置的。
+        */
 
         // 跳过9字节长度
         fseek(ctx.fp, 9, SEEK_SET);
@@ -349,6 +354,7 @@ int main(int argc, char *argv[])
                 break;
             }
             std::cout<<"time: "<<time<<std::endl;
+            /*要使用delat不断更新时间戳*/
             time += ctx.timestamp_delta;
             if(!Read24(streamid, ctx.fp)){
                 std::cout<<"Failed to read streamid"<<std::endl;

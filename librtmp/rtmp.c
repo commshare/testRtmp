@@ -213,7 +213,7 @@ RTMPPacket_Alloc(RTMPPacket *p, int nSize) {
     char *ptr = calloc(1, nSize + RTMP_MAX_HEADER_SIZE);
     if (!ptr)
         return FALSE;
-    p->m_body = ptr + RTMP_MAX_HEADER_SIZE;
+    p->m_body = ptr + RTMP_MAX_HEADER_SIZE; /*有内存分配*/
     p->m_nBytesRead = 0;
     return TRUE;
 }
@@ -221,7 +221,7 @@ RTMPPacket_Alloc(RTMPPacket *p, int nSize) {
 void
 RTMPPacket_Free(RTMPPacket *p) {
     if (p->m_body) {
-        free(p->m_body - RTMP_MAX_HEADER_SIZE);
+        free(p->m_body - RTMP_MAX_HEADER_SIZE); /*在这里释放*/
         p->m_body = NULL;
     }
 }
