@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
         lwlog_err("connect fail");
         return -1;
     }
-
+    lwlog_info("connect ok");
     const char *filename = "input.flv";
     ret = rtmpStream.SendFlvFile(filename);
 

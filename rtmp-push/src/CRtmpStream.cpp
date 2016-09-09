@@ -9,6 +9,8 @@
 
 #include "CRtmpStream.h"
 #include "bytestream.h"
+#include<iostream>
+using namespace std;
 
 char *put_byte(char *output, uint8_t nVal) {
     output[0] = nVal;
@@ -236,6 +238,9 @@ streamid          三个字节     0
     put_amf_string((char *) body, "@setDataFrame");
     memcpy(body, buf + 24, pktSize);
 
+    /*dump for debug*/
+    RTMPPacket_Dump(&packet);
+    cout<<"before send flvheader pkt "<<endl;
     ret = RTMP_SendPacket(m_pRtmp, &packet, 0);
 
     return ret;
@@ -268,7 +273,7 @@ int CRtmpStream::SendFlvFrame(unsigned char *buf, int size) {
     packet.m_packetType = pktType;
     packet.m_nBodySize = pktSize;
     packet.m_nTimeStamp = timestamp;
-    packet.m_nChannel = 4;
+    packet.m_nChannel = 0x04;//4;
     packet.m_headerType = RTMP_PACKET_SIZE_LARGE;
     packet.m_nInfoField2 = m_pRtmp->m_stream_id;
 
@@ -295,6 +300,8 @@ bool CRtmpStream::SendFlvFile(const char *filename) {
     size = GetFlvHeader(buf);
     lwlog_info("flvheader size[%d]",size);
     SendFlvHeader(buf, size);
+    lwlog_debug("===========after send flv header================");
+    #if 0
 
     // 循环发送每一帧数据
     while (!feof(m_pFid)) {
@@ -306,6 +313,6 @@ bool CRtmpStream::SendFlvFile(const char *filename) {
             sleep(40);
         }
     }
-
+    #endif
     return TRUE;
 }
