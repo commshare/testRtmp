@@ -106,7 +106,7 @@ typedef struct MDH {
 #define MDH_free(dh)	do {MP_free(((MDH*)(dh))->p); MP_free(((MDH*)(dh))->g); MP_free(((MDH*)(dh))->pub_key); MP_free(((MDH*)(dh))->priv_key); free(dh);} while(0)
 
 static int MDH_generate_key(MDH *dh)
-    {
+{
   int num_bytes;
   uint32_t seed;
   gmp_randstate_t rs;
@@ -132,8 +132,8 @@ static int MDH_generate_key(MDH *dh)
   if (!dh->pub_key) {
     mpz_clear(dh->priv_key);
     free(dh->priv_key);
-	  return 0;
-	}
+    return 0;
+  }
 
   mpz_powm(dh->pub_key, dh->g, dh->priv_key, dh->p);
 

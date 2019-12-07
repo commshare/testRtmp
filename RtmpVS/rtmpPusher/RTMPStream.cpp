@@ -5,6 +5,7 @@ author:     firehood
 purpose:    发送H264视频到RTMP Server，使用libRtmp库
 *********************************************************************/ 
 #include "stdafx.h"
+#include <iostream>
 #include "RTMPStream.h"
 #include "SpsDecode.h"
 #ifdef WIN32  
@@ -169,7 +170,7 @@ int CRTMPStream::SendVideoPacket(unsigned int nPacketType,unsigned char *data,un
 	memcpy(packet.m_body,data,size);
 
 	int nRet = RTMP_SendPacket(m_pRtmp,&packet,0);
-
+	std::cout << "====after RTMP_SendPacket want size %d " << size << " really sent " << nRet << std::endl;
 	RTMPPacket_Free(&packet);
 
 	return nRet;
@@ -211,9 +212,9 @@ bool CRTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
 	p =put_byte( p, AMF_OBJECT_END  );
 
 	int index = p-body;
-
-	SendVideoPacket(RTMP_PACKET_TYPE_INFO,(unsigned char*)body,p-body,0);
-
+	std::cout << " send RTMP_PACKET_TYPE_INFO " << RTMP_PACKET_TYPE_INFO << std::endl;
+	return SendVideoPacket(RTMP_PACKET_TYPE_INFO,(unsigned char*)body,p-body,0);
+	//先不发sps和pps
 	int i = 0;
 	body[i++] = 0x17; // 1:keyframe  7:AVC
 	body[i++] = 0x00; // AVC sequence header
@@ -502,6 +503,9 @@ bool CRTMPStream::SendH264File(const char *pFileName)
 	// 发送MetaData
 	SendMetadata(&metaData);
 	fprintf(stdout, "metaData sent.\n");
+	//先不发送视频
+	return TRUE;
+
 
 	unsigned int tick = 0;
 	while(ReadOneNaluFromBuf(naluUnit))
