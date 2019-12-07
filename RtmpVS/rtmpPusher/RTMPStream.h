@@ -10,6 +10,7 @@ purpose:    发送H264视频到RTMP Server，使用libRtmp库
 #include "faac.h"
 #include "../librtmp/amf.h"
 #include <stdio.h>
+#include <atomic>
 
 #define SPS_MAXSIZE 1024
 #define PPS_MAXSIZE 1024
@@ -92,4 +93,5 @@ private:
 	unsigned char* m_pFileBuf;
 	unsigned int  m_nFileBufSize;
 	unsigned int  m_nCurPos;
+	std::atomic_bool isquit_=false;
 };

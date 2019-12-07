@@ -504,60 +504,73 @@ bool CRTMPStream::SendH264File(const char *pFileName)
 	SendMetadata(&metaData);
 	fprintf(stdout, "metaData sent.\n");
 	//先不发送视频
-	return TRUE;
+	//return TRUE;
 
 
 	unsigned int tick = 0;
-	while(ReadOneNaluFromBuf(naluUnit))
+   //先不反复的发
+	//while (!isquit_)
 	{
-		bool bKeyframe  = (naluUnit.type == 0x05) ? TRUE : FALSE;
-		// 发送H264数据帧
-		SendH264Packet(naluUnit.data,naluUnit.size,bKeyframe,tick);
-		fprintf(stdout, "h264 video packet sent.\n");
+		while (ReadOneNaluFromBuf(naluUnit))
+		{
+			bool bKeyframe = (naluUnit.type == 0x05) ? TRUE : FALSE;
+			// 发送H264数据帧
+			SendH264Packet(naluUnit.data, naluUnit.size, bKeyframe, tick);
+			fprintf(stdout, "h264 video packet sent.\n");
 
-		//视频时间戳可以从0开始计算，每帧时间戳 + 1000/fps (25fps每帧递增25；30fps递增33)
-		//msleep(40);
-		tick +=40;
+			//只读取一帧就不发送了
+			break;
+			//视频时间戳可以从0开始计算，每帧时间戳 + 1000/fps (25fps每帧递增25；30fps递增33)
+			//msleep(40);
+			tick += 40;
+		}
+		//从头开始
+		std::cout << "===read h264 from beignning  " << std::endl;
+		m_nCurPos = 0;
 	}
+	std::cout << "====== not read h264 from file anymore" << std::endl;
 
 	return TRUE;
 }
 
 bool CRTMPStream::ReadAACFrameFromBuf(AACFrame &aacf){
 	int i = m_nCurPos;
-
-	while(i<m_nFileBufSize)
+	//while (!isquit_)
 	{
-		/************************************************************************/
-		/*       AAC frame头部7个字节:FF F1 4C 40 0B BF FC                      */
-		/************************************************************************/
-		if(m_pFileBuf[i++] == 0xFF && (m_pFileBuf[i++]&0xF0) == 0xF0)
+		while (i < m_nFileBufSize)
 		{
-			i+=5; //跳过头部7个字节, i在FC后面数据开始的位置
-			int pos = i;
-			while (pos<m_nFileBufSize)
+			/************************************************************************/
+			/*       AAC frame头部7个字节:FF F1 4C 40 0B BF FC                      */
+			/************************************************************************/
+			if (m_pFileBuf[i++] == 0xFF && (m_pFileBuf[i++] & 0xF0) == 0xF0)
 			{
-				if(m_pFileBuf[pos++] == 0xFF && (m_pFileBuf[pos++]&0xF0) == 0xF0)
+				i += 5; //跳过头部7个字节, i在FC后面数据开始的位置
+				int pos = i;
+				while (pos < m_nFileBufSize)
 				{
-					break;
+					if (m_pFileBuf[pos++] == 0xFF && (m_pFileBuf[pos++] & 0xF0) == 0xF0)
+					{
+						break;
+					}
 				}
-			}
-			//pos在下一个AAC frame的4C位置
-			if(pos == m_nFileBufSize)
-			{
-				aacf.size = pos-i;
-			}
-			else
-			{
-				aacf.size = (pos-2)-i;
-			}
-			aacf.data = &m_pFileBuf[i];
-			//printf("2=====size=%d, data=%02X%02X%02X\n", aacf.size, aacf.data[0], aacf.data[1], aacf.data[2]);
+				//pos在下一个AAC frame的4C位置
+				if (pos == m_nFileBufSize)
+				{
+					aacf.size = pos - i;
+				}
+				else
+				{
+					aacf.size = (pos - 2) - i;
+				}
+				aacf.data = &m_pFileBuf[i];
+				//printf("2=====size=%d, data=%02X%02X%02X\n", aacf.size, aacf.data[0], aacf.data[1], aacf.data[2]);
 
-			m_nCurPos = pos-2;
-			return TRUE;
+				m_nCurPos = pos - 2;
+				return TRUE;
+			}
 		}
 	}
+
 	return FALSE;
 }
 
