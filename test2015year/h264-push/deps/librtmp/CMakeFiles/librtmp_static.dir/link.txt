@@ -1,0 +1,2 @@
+/bin/ar cr librtmp.a  CMakeFiles/librtmp_static.dir/amf.c.o CMakeFiles/librtmp_static.dir/hashswf.c.o CMakeFiles/librtmp_static.dir/log.c.o CMakeFiles/librtmp_static.dir/parseurl.c.o CMakeFiles/librtmp_static.dir/rtmp.c.o
+/bin/ranlib librtmp.a
