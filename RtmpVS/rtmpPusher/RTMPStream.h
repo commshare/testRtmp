@@ -69,7 +69,7 @@ public:
 	// 断开连接
 	void Close();
 	// 发送MetaData
-	bool SendMetadata(LPRTMPMetadata lpMetaData);
+	bool SendMetadata(LPRTMPMetadata lpMetaData, bool spspps);
 	// 发送H264数据帧
 	bool SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp);
 	// 发送H264文件

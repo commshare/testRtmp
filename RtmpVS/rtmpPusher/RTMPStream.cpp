@@ -170,50 +170,53 @@ int CRTMPStream::SendVideoPacket(unsigned int nPacketType,unsigned char *data,un
 	memcpy(packet.m_body,data,size);
 
 	int nRet = RTMP_SendPacket(m_pRtmp,&packet,0);
-	std::cout << "====after RTMP_SendPacket want size %d " << size << " really sent " << nRet << std::endl;
+	std::cout << "====after RTMP_SendPacket want size " << size << " really sent " << nRet << std::endl;
 	RTMPPacket_Free(&packet);
 
 	return nRet;
 }
 
-bool CRTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
+bool CRTMPStream::SendMetadata(LPRTMPMetadata lpMetaData,bool spspps=false)
 {
-	if(lpMetaData == NULL)
+	if (lpMetaData == NULL)
 	{
 		return false;
 	}
-	char body[1024] = {0};;
+	char body[1024] = { 0 };
+	char* p = (char*)body;
+	if (!spspps)
+	{
+		p = put_byte(p, AMF_STRING);
+		p = put_amf_string(p, "@setDataFrame");
 
-	char * p = (char *)body;  
-	p = put_byte(p, AMF_STRING );
-	p = put_amf_string(p , "@setDataFrame" );
+		p = put_byte(p, AMF_STRING);
+		p = put_amf_string(p, "onMetaData");
 
-	p = put_byte( p, AMF_STRING );
-	p = put_amf_string( p, "onMetaData" );
+		p = put_byte(p, AMF_OBJECT);
+		p = put_amf_string(p, "copyright");
+		p = put_byte(p, AMF_STRING);
+		p = put_amf_string(p, "firehood");
 
-	p = put_byte(p, AMF_OBJECT );  
-	p = put_amf_string( p, "copyright" );  
-	p = put_byte(p, AMF_STRING );  
-	p = put_amf_string( p, "firehood" );  
+		p = put_amf_string(p, "width");
+		p = put_amf_double(p, lpMetaData->nWidth);
 
-	p =put_amf_string( p, "width");
-	p =put_amf_double( p, lpMetaData->nWidth);
+		p = put_amf_string(p, "height");
+		p = put_amf_double(p, lpMetaData->nHeight);
 
-	p =put_amf_string( p, "height");
-	p =put_amf_double( p, lpMetaData->nHeight);
+		p = put_amf_string(p, "framerate");
+		p = put_amf_double(p, lpMetaData->nFrameRate);
 
-	p =put_amf_string( p, "framerate" );
-	p =put_amf_double( p, lpMetaData->nFrameRate); 
+		p = put_amf_string(p, "videocodecid");
+		p = put_amf_double(p, FLV_CODECID_H264);
 
-	p =put_amf_string( p, "videocodecid" );
-	p =put_amf_double( p, FLV_CODECID_H264 );
+		p = put_amf_string(p, "");
+		p = put_byte(p, AMF_OBJECT_END);
 
-	p =put_amf_string( p, "" );
-	p =put_byte( p, AMF_OBJECT_END  );
-
-	int index = p-body;
-	std::cout << " send RTMP_PACKET_TYPE_INFO " << RTMP_PACKET_TYPE_INFO << std::endl;
-	return SendVideoPacket(RTMP_PACKET_TYPE_INFO,(unsigned char*)body,p-body,0);
+		int index = p - body;
+		std::cout << " send RTMP_PACKET_TYPE_INFO " << RTMP_PACKET_TYPE_INFO << std::endl;
+		return SendVideoPacket(RTMP_PACKET_TYPE_INFO, (unsigned char*)body, p - body, 0);
+	}
+	//如视频是H.264编码，第一帧视频帧需要是SPS和PPS，后面才是I帧和P帧。
 	//先不发sps和pps
 	int i = 0;
 	body[i++] = 0x17; // 1:keyframe  7:AVC
@@ -472,6 +475,7 @@ bool CRTMPStream::SendH264File(const char *pFileName)
 
 	ReadOneNaluFromBuf(naluUnit);
 	if(naluUnit.type == 6){ //如果开头是1个SEI帧，则跳过SEI帧
+		std::cout << "开头是1个SEI帧，则跳过SEI帧" << std::endl;
 		ReadOneNaluFromBuf(naluUnit);
 	}
 
@@ -503,6 +507,8 @@ bool CRTMPStream::SendH264File(const char *pFileName)
 	// 发送MetaData
 	SendMetadata(&metaData);
 	fprintf(stdout, "metaData sent.\n");
+	SendMetadata(&metaData,true);
+	fprintf(stdout, "spspps sent.\n");
 	//先不发送视频
 	//return TRUE;
 
