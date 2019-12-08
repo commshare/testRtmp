@@ -23,6 +23,10 @@
  */
 
 /* This file is #included in rtmp.c, it is not meant to be compiled alone */
+#ifdef _cplusplus
+extern "C"
+{
+#endif
 
 #ifdef USE_POLARSSL
 #include <polarssl/sha2.h>
@@ -1417,3 +1421,8 @@ SHandShake(RTMP * r)
   RTMP_Log(RTMP_LOGDEBUG, "%s: Handshaking finished....", __FUNCTION__);
   return TRUE;
 }
+
+
+#ifdef _cplusplus
+}
+#endif

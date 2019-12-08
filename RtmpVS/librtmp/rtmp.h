@@ -32,7 +32,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stddef.h>
-
+#include "rtmp_const.h"
 #include "amf.h"
 
 #ifdef __cplusplus
@@ -40,67 +40,11 @@ extern "C"
 {
 #endif
 
-#define RTMP_LIB_VERSION	0x020300	/* 2.3 */
+	extern const char RTMPProtocolStringsLower[][7];
+	extern const AVal RTMP_DefaultFlashVer;
+	extern int RTMP_ctrlC;
 
-#define RTMP_FEATURE_HTTP	0x01
-#define RTMP_FEATURE_ENC	0x02
-#define RTMP_FEATURE_SSL	0x04
-#define RTMP_FEATURE_MFP	0x08	/* not yet supported */
-#define RTMP_FEATURE_WRITE	0x10	/* publish, not play */
-#define RTMP_FEATURE_HTTP2	0x20	/* server-side rtmpt */
-
-#define RTMP_PROTOCOL_UNDEFINED	-1
-#define RTMP_PROTOCOL_RTMP      0
-#define RTMP_PROTOCOL_RTMPE     RTMP_FEATURE_ENC
-#define RTMP_PROTOCOL_RTMPT     RTMP_FEATURE_HTTP
-#define RTMP_PROTOCOL_RTMPS     RTMP_FEATURE_SSL
-#define RTMP_PROTOCOL_RTMPTE    (RTMP_FEATURE_HTTP|RTMP_FEATURE_ENC)
-#define RTMP_PROTOCOL_RTMPTS    (RTMP_FEATURE_HTTP|RTMP_FEATURE_SSL)
-#define RTMP_PROTOCOL_RTMFP     RTMP_FEATURE_MFP
-
-#define RTMP_DEFAULT_CHUNKSIZE	128
-
-/* needs to fit largest number of bytes recv() may return */
-#define RTMP_BUFFER_CACHE_SIZE (16*1024)
-
-#define	RTMP_CHANNELS	65600
-
-  extern const char RTMPProtocolStringsLower[][7];
-  extern const AVal RTMP_DefaultFlashVer;
-  extern int RTMP_ctrlC;
-
-  uint32_t RTMP_GetTime(void);
-
-/*      RTMP_PACKET_TYPE_...                0x00 */
-#define RTMP_PACKET_TYPE_CHUNK_SIZE         0x01
-/*      RTMP_PACKET_TYPE_...                0x02 */
-#define RTMP_PACKET_TYPE_BYTES_READ_REPORT  0x03
-#define RTMP_PACKET_TYPE_CONTROL            0x04
-#define RTMP_PACKET_TYPE_SERVER_BW          0x05
-#define RTMP_PACKET_TYPE_CLIENT_BW          0x06
-/*      RTMP_PACKET_TYPE_...                0x07 */
-#define RTMP_PACKET_TYPE_AUDIO              0x08
-#define RTMP_PACKET_TYPE_VIDEO              0x09
-/*      RTMP_PACKET_TYPE_...                0x0A */
-/*      RTMP_PACKET_TYPE_...                0x0B */
-/*      RTMP_PACKET_TYPE_...                0x0C */
-/*      RTMP_PACKET_TYPE_...                0x0D */
-/*      RTMP_PACKET_TYPE_...                0x0E */
-#define RTMP_PACKET_TYPE_FLEX_STREAM_SEND   0x0F
-#define RTMP_PACKET_TYPE_FLEX_SHARED_OBJECT 0x10
-#define RTMP_PACKET_TYPE_FLEX_MESSAGE       0x11
-#define RTMP_PACKET_TYPE_INFO               0x12
-#define RTMP_PACKET_TYPE_SHARED_OBJECT      0x13
-#define RTMP_PACKET_TYPE_INVOKE             0x14
-/*      RTMP_PACKET_TYPE_...                0x15 */
-#define RTMP_PACKET_TYPE_FLASH_VIDEO        0x16
-
-#define RTMP_MAX_HEADER_SIZE 18
-
-#define RTMP_PACKET_SIZE_LARGE    0
-#define RTMP_PACKET_SIZE_MEDIUM   1
-#define RTMP_PACKET_SIZE_SMALL    2
-#define RTMP_PACKET_SIZE_MINIMUM  3
+	uint32_t RTMP_GetTime(void);
 
   typedef struct RTMPChunk
   {
@@ -110,19 +54,31 @@ extern "C"
     char c_header[RTMP_MAX_HEADER_SIZE];
   } RTMPChunk;
 
-  typedef struct RTMPPacket
-  {
-    uint8_t m_headerType;
-    uint8_t m_packetType;
-    uint8_t m_hasAbsTimestamp;	/* timestamp absolute or relative? */
-    int m_nChannel;
-    uint32_t m_nTimeStamp;	/* timestamp */
-    int32_t m_nInfoField2;	/* last 4 bytes in a long header */
-    uint32_t m_nBodySize;
-    uint32_t m_nBytesRead;
-    RTMPChunk *m_chunk;
-    char *m_body;
-  } RTMPPacket;
+//	
+//	3.1 Message(消息)
+//这里的Message是指满足该协议格式的、可以切分成Chunk发送的消息，消息包含的字段如下：
+//
+//Timestamp（时间戳）：消息的时间戳（但不一定是当前时间，后面会介绍），4个字节
+//Length(长度)：是指Message Payload（消息负载）即音视频等信息的数据的长度，3个字节
+//TypeId(类型Id)：消息的类型Id，1个字节
+//Message Stream ID（消息的流ID）：每个消息的唯一标识，划分成Chunk和还原Chunk为Message的时候都是根据这个ID来辨识是否是同一个消息的Chunk的，4个字节，并且以小端格式存储
+//
+//https://www.jianshu.com/p/b2144f9bbe28
+	typedef struct RTMPPacket
+	{
+		//Basic Header最前面兩個 bits 表示 FMT(Chunk Type) ，此值會影響 message header的大小。
+		uint8_t   m_headerType; // ChunkMsgHeader类型(4种)
+		uint8_t   m_packetType; // Message type ID（1-7协议控制；8，9音视频；10以后为AMF编码消息）
+		uint8_t   m_hasAbsTimestamp; // Timestamp 是绝对值还是相对值？
+		int         m_nChannel; // 块流ID (3 <= ID <= 65599)
+		uint32_t m_nTimeStamp; // Timestamp，时间戳
+		int32_t   m_nInfoField2; // last 4 bytes in a long header，消息流ID 
+		uint32_t  m_nBodySize; // 消息长度
+		uint32_t  m_nBytesRead; // 该RTMP包数据已经读取到m_body中的字节数
+		RTMPChunk* m_chunk;
+		char* m_body; // 存放实际消息数据的缓冲区
+	} RTMPPacket;
+	
 
   typedef struct RTMPSockBuf
   {
@@ -165,13 +121,7 @@ extern "C"
     int seekTime;
     int stopTime;
 
-#define RTMP_LF_AUTH	0x0001	/* using auth param */
-#define RTMP_LF_LIVE	0x0002	/* stream is live */
-#define RTMP_LF_SWFV	0x0004	/* do SWF verification */
-#define RTMP_LF_PLST	0x0008	/* send playlist before play */
-#define RTMP_LF_BUFX	0x0010	/* toggle stream on BufferEmpty msg */
-#define RTMP_LF_FTCU	0x0020	/* free tcUrl on close */
-#define RTMP_LF_FAPU	0x0040	/* free app on close */
+
     int lFlags;
 
     int swfAge;
@@ -179,12 +129,7 @@ extern "C"
     int protocol;
     int timeout;		/* connection timeout in seconds */
 
-//下面这几个新版本里面没有了
-#define RTMP_PUB_NAME   0x0001  /* send login to server */
-#define RTMP_PUB_RESP   0x0002  /* send salted password hash */
-#define RTMP_PUB_ALLOC  0x0004  /* allocated data for new tcUrl & app */
-#define RTMP_PUB_CLEAN  0x0008  /* need to free allocated data for newer tcUrl & app at exit */
-#define RTMP_PUB_CLATE  0x0010  /* late clean tcUrl & app at exit */
+
     int pFlags;			/* unused, but kept to avoid breaking ABI */
 
     unsigned short socksport;

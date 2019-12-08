@@ -45,6 +45,9 @@
     <ClInclude Include="version.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="rtmp_const.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hashswf.c">
@@ -56,10 +59,10 @@
     <ClCompile Include="parseurl.c">
       <Filter>源代码</Filter>
     </ClCompile>
-    <ClCompile Include="rtmp.c">
+    <ClCompile Include="amf.c">
       <Filter>源代码</Filter>
     </ClCompile>
-    <ClCompile Include="amf.c">
+    <ClCompile Include="rtmp.c">
       <Filter>源代码</Filter>
     </ClCompile>
   </ItemGroup>

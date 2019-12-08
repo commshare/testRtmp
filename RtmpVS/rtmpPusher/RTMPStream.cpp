@@ -6,6 +6,7 @@ purpose:    发送H264视频到RTMP Server，使用libRtmp库
 *********************************************************************/ 
 #include "stdafx.h"
 #include <iostream>
+#include "log.h"
 #include "RTMPStream.h"
 #include "SpsDecode.h"
 #ifdef WIN32  
@@ -150,8 +151,25 @@ void CRTMPStream::Close()
 	}
 }
 
-int CRTMPStream::SendVideoPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
+int CRTMPStream::SendVideoPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,
+	unsigned int nTimestamp)
 {
+	if (nPacketType == RTMP_PACKET_TYPE_INFO)
+	{
+		static uint32_t count1 = 0;
+		std::cout << "---SEND metainfo " << ++count1 << " :size " << size /*<< "[" << data << "]"*/ << "begin" << std::endl;
+		RTMP_LogHexString(RTMP_LOGDEBUG2, (uint8_t*)data, size);
+		std::cout << "---SEND metainfo " << count1 << " :size " << size /*<< "[" << data << "]"*/ << "end" << std::endl;
+	}
+	if (nPacketType == RTMP_PACKET_TYPE_VIDEO)
+	{
+		static uint32_t count = 0;
+		std::cout << "---SEND VIDEO "<< ++count<<" :size " << size /*<< "[" << data << "]"*/ <<"begin"<< std::endl;
+		RTMP_LogHexString(RTMP_LOGDEBUG2, (uint8_t*)data, size);
+		std::cout << "---SEND VIDEO " << count << " :size " << size /*<< "[" << data << "]"*/ << "end" << std::endl;
+
+
+	}
 	if(m_pRtmp == NULL)
 	{
 		return FALSE;
@@ -213,7 +231,7 @@ bool CRTMPStream::SendMetadata(LPRTMPMetadata lpMetaData,bool spspps=false)
 		p = put_byte(p, AMF_OBJECT_END);
 
 		int index = p - body;
-		std::cout << " send RTMP_PACKET_TYPE_INFO " << RTMP_PACKET_TYPE_INFO << std::endl;
+		std::cout << " send RTMP_PACKET_TYPE_INFO " << RTMP_PACKET_TYPE_INFO <<" BODY SIZE "<< index << std::endl;
 		return SendVideoPacket(RTMP_PACKET_TYPE_INFO, (unsigned char*)body, p - body, 0);
 	}
 	//如视频是H.264编码，第一帧视频帧需要是SPS和PPS，后面才是I帧和P帧。
@@ -507,6 +525,10 @@ bool CRTMPStream::SendH264File(const char *pFileName)
 	// 发送MetaData
 	SendMetadata(&metaData);
 	fprintf(stdout, "metaData sent.\n");
+
+	//只发metadata，看服务器是不是没读取完毕metadata就读取了下一个
+	return TRUE;
+	//sps pps
 	SendMetadata(&metaData,true);
 	fprintf(stdout, "spspps sent.\n");
 	//先不发送视频

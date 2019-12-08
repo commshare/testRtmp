@@ -28,10 +28,13 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
-
+//#include <iostream>
 #include "rtmp_sys.h"
 #include "log.h"
-
+#ifdef _cplusplus
+extern "C"
+{
+#endif
 #ifdef CRYPTO
 #ifdef USE_POLARSSL
 #include <polarssl/havege.h>
@@ -1501,6 +1504,7 @@ ReadN(RTMP *r, char *buffer, int n)
 static int
 WriteN(RTMP *r, const char *buffer, int n)
 {
+	printf("==>-----WriteN n %d begin\n",n);
 	const char *ptr = buffer;
 #ifdef CRYPTO
 	char *encrypted = 0;
@@ -1552,7 +1556,7 @@ WriteN(RTMP *r, const char *buffer, int n)
 	if (encrypted && encrypted != buf)
 		free(encrypted);
 #endif
-
+	printf("==>-----WriteN n %d end ok\n", n);
 	return n == 0;
 }
 
@@ -3598,7 +3602,7 @@ RTMP_ReadPacket(RTMP *r, RTMPPacket *packet)
   if (packet->m_nChannel >= r->m_channelsAllocatedIn)
     {
       int n = packet->m_nChannel + 10;
-      int *timestamp = realloc(r->m_channelTimestamp, sizeof(int) * n);
+      int *timestamp =(int*) realloc(r->m_channelTimestamp, sizeof(int) * n);
       RTMPPacket **packets = realloc(r->m_vecChannelsIn, sizeof(RTMPPacket*) * n);
       if (!timestamp)
         free(r->m_channelTimestamp);
@@ -3891,10 +3895,23 @@ RTMP_SendChunk(RTMP *r, RTMPChunk *chunk)
 		wrote = WriteN(r, chunk->c_header, chunk->c_headerSize);
 	return wrote;
 }
-
+/**
+ * @brief 将RTMP包按照协议分块发送出去
+ *
+ * @param r ：RTMP上下文参数
+ * @param packet ： RTMP包，含有带发送的消息负载数据。
+ * @param queue  ：远程方法队列，仅当packet的类型为invoke时使用。
+ *
+ * @return 1 成功，失败返回0。
+ */
 int
 RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
 {
+	if (packet->m_packetType == RTMP_PACKET_TYPE_VIDEO)
+	{
+	//	std::cout << " RTMP_SendPacket video msg " << std::endl;
+		printf( " RTMP_SendPacket video msg \n");
+	}
   const RTMPPacket *prevPacket;
 	uint32_t last = 0;
 	int nSize;
@@ -3904,7 +3921,6 @@ RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
 	char *buffer, *tbuf = NULL, *toff = NULL;
 	int nChunkSize;
 	int tlen;
-
   if (packet->m_nChannel >= r->m_channelsAllocatedOut)
     {
       int n = packet->m_nChannel + 10;
@@ -3921,52 +3937,68 @@ RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
     }
 
   prevPacket = r->m_vecChannelsOut[packet->m_nChannel];
+
+	// 前一个packet存在且不是完整的ChunkMsgHeader，因此有可能需要调整块消息头的类型
 	if (prevPacket && packet->m_headerType != RTMP_PACKET_SIZE_LARGE)
 	{
 		/* compress a bit by using the prev packet's attributes */
+		// 获取ChunkMsgHeader类型，前一个Chunk与当前Chunk比较
+		// 如果前后两个块的大小、包类型及块头类型都相同，则将块头类型fmt设为2，
+		// 即可省略消息长度、消息类型id、消息流id
+		// 可以参考官方协议：流的分块 --- 6.1.2.3节	
 		if (prevPacket->m_nBodySize == packet->m_nBodySize
 			&& prevPacket->m_packetType == packet->m_packetType
 			&& packet->m_headerType == RTMP_PACKET_SIZE_MEDIUM)
 			packet->m_headerType = RTMP_PACKET_SIZE_SMALL;
 
+		// 前后两个块的时间戳相同，且块头类型fmt为2，则相应的时间戳也可省略，因此将块头类型置为3
+// 可以参考官方协议：流的分块 --- 6.1.2.4节
 		if (prevPacket->m_nTimeStamp == packet->m_nTimeStamp
 			&& packet->m_headerType == RTMP_PACKET_SIZE_SMALL)
 			packet->m_headerType = RTMP_PACKET_SIZE_MINIMUM;
+		// 前一个包的时间戳
 		last = prevPacket->m_nTimeStamp;
 	}
-
+	// 块头类型fmt取值0、1、2、3，超过3就表示出错
 	if (packet->m_headerType > 3)	/* sanity */
 	{
 		RTMP_Log(RTMP_LOGERROR, "sanity failed!! trying to send header of type: 0x%02x.",
 			(unsigned char)packet->m_headerType);
 		return FALSE;
 	}
-
+	 // 块头初始大小 = 基本头(1字节) + 块消息头大小(11/7/3/0) = [12, 8, 4, 1]
+  // 块基本头是1-3字节，因此用变量cSize来表示剩下的0-2字节
+  // nSize 表示块头初始大小， hSize表示块头大小
 	nSize = packetSize[packet->m_headerType];
 	hSize = nSize; cSize = 0;
+	// 时间戳增量
 	t = packet->m_nTimeStamp - last;
 
 	if (packet->m_body)
 	{
-		header = packet->m_body - nSize;
-		hend = packet->m_body;
+		// m_body是指向负载数据首地址的指针；“-”号用于指针前移
+		header = packet->m_body - nSize;  // 块头的首指针
+		hend = packet->m_body; // 块头的尾指针
 	}
 	else
 	{
 		header = hbuf + 6;
 		hend = hbuf + sizeof(hbuf);
 	}
-
+	// 块流id(cs id)大于319，则块基本头占3个字节
 	if (packet->m_nChannel > 319)
 		cSize = 2;
+	// 块流id(cs id)在64与319之间，则块基本头占2个字节
 	else if (packet->m_nChannel > 63)
 		cSize = 1;
+	// ChunkBasicHeader的长度比初始长度还要长
 	if (cSize)
 	{
-		header -= cSize;
-		hSize += cSize;
+		header -= cSize; // header指向块头
+		hSize += cSize; // hSize加上ChunkBasicHeader的长度（比初始长度多出来的长度）
 	}
-
+	// nSize > 1表示块消息头至少有3个字节，即存在timestamp字段
+// 相对TimeStamp大于0xffffff，此时需要使用ExtendTimeStamp 
   if (t >= 0xffffff)
     {
       header -= 4;
@@ -3975,56 +4007,75 @@ RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
     }
 
 	hptr = header;
-	c = packet->m_headerType << 6;
+	c = packet->m_headerType << 6;// 把ChunkBasicHeader的Fmt类型左移6位
+	// 设置basic header的第一个字节值，前两位为fmt. 可以参考官方协议：流的分块 --- 6.1.1节
 	switch (cSize)
 	{
 	case 0:
-		c |= packet->m_nChannel;
+		c |= packet->m_nChannel; // 把ChunkBasicHeader的低6位设置成ChunkStreamID( cs id )
 		break;
-	case 1:
+	case 1:// 同理，但低6位设置成000000
 		break;
-	case 2:
+	case 2:// 同理，但低6位设置成000001
 		c |= 1;
 		break;
 	}
+	// 可以拆分成两句*hptr=c; hptr++，此时hptr指向第2个字节 
 	*hptr++ = c;
+	// 设置basic header的第二(三)个字节值
 	if (cSize)
 	{
+		// 将要放到第2字节的内容tmp
 		int tmp = packet->m_nChannel - 64;
+		// 获取低位存储与第2字节
 		*hptr++ = tmp & 0xff;
+		// ChunkBasicHeader是最大的3字节时
 		if (cSize == 2)
-			*hptr++ = tmp >> 8;
+			*hptr++ = tmp >> 8; // 获取高位存储于最后1个字节（注意：排序使用大端序列，和主机相反）
 	}
-
+	// ChunkMsgHeader长度为11、7、3, 都含有timestamp（3字节）
 	if (nSize > 1)
 	{
+		// 将时间戳(相对或绝对)转化为3个字节存入hptr，如果时间戳超过0xffffff,则后面还要填入Extend Timestamp
 		hptr = AMF_EncodeInt24(hptr, hend, t > 0xffffff ? 0xffffff : t);
 	}
-
+	// ChunkMsgHeader长度为11、7，都含有 msg length + msg type id
 	if (nSize > 4)
 	{
+		// 将消息长度(msg length)转化为3个字节存入hptr
 		hptr = AMF_EncodeInt24(hptr, hend, packet->m_nBodySize);
 		*hptr++ = packet->m_packetType;
 	}
-
+	// ChunkMsgHeader长度为11, 含有msg stream id（ 小端）
 	if (nSize > 8)
 		hptr += EncodeInt32LE(hptr, packet->m_nInfoField2);
 
-  if (t >= 0xffffff)
+	// 如果时间戳大于0xffffff，则需要写入Extend Timestamp
+	if (t >= 0xffffff) //if (nSize > 1 && t >= 0xffffff)
     hptr = AMF_EncodeInt32(hptr, hend, t);
-
+	// 到此为止，已经将块头填写好了
+// 此时nSize表示负载数据的长度, buffer是指向负载数据区的指针
 	nSize = packet->m_nBodySize;
 	buffer = packet->m_body;
-	nChunkSize = r->m_outChunkSize;
+	nChunkSize = r->m_outChunkSize; //Chunk大小，默认是128字节
 
 	RTMP_Log(RTMP_LOGDEBUG2, "%s: fd=%d, size=%d", __FUNCTION__, r->m_sb.sb_socket,
 		nSize);
-	/* send all chunks in one HTTP request */
+	/* send all chunks in one HTTP request *//* send all chunks in one HTTP request，使用HTTP协议 */
 	if (r->Link.protocol & RTMP_FEATURE_HTTP)
 	{
+		// nSize:Message负载长度；nChunkSize：Chunk长度；  
+// 例nSize：307，nChunkSize:128；  
+// 可分为（307 + 128 - 1）/128 = 3个  
+// 为什么加 nChunkSize - 1？因为除法会只取整数部分！
 		int chunks = (nSize + nChunkSize - 1) / nChunkSize;
+		// Chunk个数超过一个
 		if (chunks > 1)
 		{
+			// 注意：ChunkBasicHeader的长度 = cSize + 1
+// 消息分n块后总的开销：  
+// n个ChunkBasicHeader，1个ChunkMsgHeader，1个Message负载  
+// 实际上只有第一个Chunk是完整的，剩下的只有ChunkBasicHeader
 			tlen = chunks * (cSize + 1) + nSize + hSize;
 			tbuf = malloc(tlen);
 			if (!tbuf)
@@ -4032,67 +4083,81 @@ RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
 			toff = tbuf;
 		}
 	}
+	// 消息的负载 + 头
 	while (nSize + hSize)
 	{
 		int wrote;
-
+		// 消息负载大小 < Chunk大小（不用分块）
 		if (nSize < nChunkSize)
-			nChunkSize = nSize;
+			nChunkSize = nSize; // Chunk可能小于设定值
 
 		RTMP_LogHexString(RTMP_LOGDEBUG2, (uint8_t *)header, hSize);
 		RTMP_LogHexString(RTMP_LOGDEBUG2, (uint8_t *)buffer, nChunkSize);
+		// 如果r->Link.protocol采用Http协议，则将RTMP包数据封装成多个Chunk，然后一次性发送。
+// 否则每封装成一个块，就立即发送出去
 		if (tbuf)
 		{
 			memcpy(toff, header, nChunkSize + hSize);
 			toff += nChunkSize + hSize;
 		}
-		else
+		else// 负载数据长度不超过设定的块大小，不需要分块，因此tbuf为NULL；或者r->Link.protocol不采用Http
 		{
+			// 直接将负载数据和块头数据发送出去
 			wrote = WriteN(r, header, nChunkSize + hSize);
 			if (!wrote)
 				return FALSE;
 		}
-		nSize -= nChunkSize;
-		buffer += nChunkSize;
-		hSize = 0;
-
+		nSize -= nChunkSize; // 消息负载长度 - Chunk负载长度 
+		buffer += nChunkSize; // buffer指针前移1个Chunk负载长度
+		hSize = 0;  // 重置块头大小为0，后续的块只需要有基本头(或加上扩展时间戳)即可
+		// 如果消息负载数据还没有发完，准备填充下一个块的块头数据
 		if (nSize > 0)
 		{
+			//TODO 这里开始逻辑不太一样了 https://blog.csdn.net/huangmindong/article/details/26574653
+			// 初始块头 = 初始 Basic Header(1字节)
 			header = buffer - 1;
 			hSize = 1;
+			// 如果Basic Header还有额外字节，调整块头大小
 			if (cSize)
 			{
 				header -= cSize;
 				hSize += cSize;
 			}
-          if (t >= 0xffffff)
-            {
-              header -= 4;
-              hSize += 4;
-            }
-	  *header = (0xc0 | c);
-	  if (cSize)
+			if (t >= 0xffffff)
+			{
+				header -= 4;
+				hSize += 4;
+			}
+			/////////todo ////到这里结束/////////
+			// ChunkBasicHeader第1个字节
+	   *header = (0xc0 | c);
+		 // 设置basic header的第二(三)个字节值
+			if (cSize)
 	    {
 	      int tmp = packet->m_nChannel - 64;
 	      header[1] = tmp & 0xff;
 	      if (cSize == 2)
-		header[2] = tmp >> 8;
-	    }
-          if (t >= 0xffffff)
-            {
-              char* extendedTimestamp = header + 1 + cSize;
-              AMF_EncodeInt32(extendedTimestamp, extendedTimestamp + 4, t);
-            }
-	}
-    }
+					header[2] = tmp >> 8;
+			}
+			// 如果时间戳大于0xffffff，则将Extend Timestamp(4字节)写入进去
+			if (t >= 0xffffff)
+			{
+				char* extendedTimestamp = header + 1 + cSize;
+				AMF_EncodeInt32(extendedTimestamp, extendedTimestamp + 4, t);
+			}          
+		}
+  } // while (nSize + hSize)结束
+	// 如果tbuf为空，说明负载数据长度小于Chunk大小（采用RTMP_FEATURE_HTTP），只有一个块。
+// 或者每封装好一个块就立即发送出去（在上面while中数据已经发送了）；
+// 如果tbuf非空，则把所有的块都封装好之后，一次性发送出去
   if (tbuf)
-    {
+  {
       int wrote = WriteN(r, tbuf, toff-tbuf);
       free(tbuf);
       tbuf = NULL;
       if (!wrote)
         return FALSE;
-    }
+  }
 
 	/* we invoked a remote method */
   if (packet->m_packetType == RTMP_PACKET_TYPE_INVOKE)
@@ -4100,12 +4165,13 @@ RTMP_SendPacket(RTMP *r, RTMPPacket *packet, int queue)
 		AVal method;
 		char *ptr;
 		ptr = packet->m_body + 1;
+		// ptr处存放数据格式： | 字符串长度(2字节) |  实际字符串 |
 		AMF_DecodeString(ptr, &method);
 		RTMP_Log(RTMP_LOGDEBUG, "Invoking %s", method.av_val);
 		/* keep it in call queue till result arrives */
 		if (queue) {
 			int txn;
-			ptr += 3 + method.av_len;
+			ptr += 3 + method.av_len;// 解码前面的字符串占去了 2 + method.av_len 个字节
 			txn = (int)AMF_DecodeNumber(ptr);
 			AV_queue(&r->m_methodCalls, &r->m_numCalls, &method, txn);
 		}
@@ -5179,3 +5245,6 @@ RTMP_Write(RTMP *r, const char *buf, int size)
 	}
 	return size + s2;
 }
+#ifdef _cplusplus
+}
+#endif

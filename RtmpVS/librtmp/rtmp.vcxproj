@@ -143,6 +143,7 @@
     <ClInclude Include="http.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="rtmp.h" />
+    <ClInclude Include="rtmp_const.h" />
     <ClInclude Include="rtmp_sys.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
